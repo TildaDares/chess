@@ -1,11 +1,8 @@
 require_relative 'game'
 class Player
-  attr_reader :name, :piece
-  def initialize(name, piece, chess_pieces, opponent_pieces)
+  def initialize(name, piece)
     @name = name
     @piece = piece
-    @chess_pieces = chess_pieces
-    @opponent_pieces = opponent_pieces
     @@board = Board.new
   end
 
@@ -13,15 +10,15 @@ class Player
     @@board.print_board
     puts "#{@name} what piece would you like to play? (e.g. a1, d3, d7)"
     piece_to_play = gets.chomp
-    while piece_to_play.empty? || !(/^[a-h][1-8]$/ =~ piece_to_play)
+    while piece_to_play.empty? || !(/^[a-h][1-8]$/i =~ piece_to_play)
       puts 'Enter a valid piece'
       piece_to_play = gets.chomp
     end
-    until @@board.check_game_board_pieces?(piece_to_play, @piece, @chess_pieces, @opponent_pieces)
+    until @@board.check_game_board_pieces?(piece_to_play, @piece)
       puts 'That piece cannot be reached'
       puts 'Enter a valid piece'
       piece_to_play = gets.chomp
-      while piece_to_play.empty? || !(/^[a-h][1-8]$/ =~ piece_to_play)
+      while piece_to_play.empty? || !(/^[a-h][1-8]$/i =~ piece_to_play)
         puts 'Enter a valid piece'
         piece_to_play = gets.chomp
       end
@@ -29,27 +26,26 @@ class Player
     return move_to_square(piece_to_play)
   end
 
+  private
+
   def move_to_square(piece_to_play)
     puts "#{@name} where would you like to move to? (e.g. a1, d3, d7)"
     square_to_move_to = gets.chomp
-    while square_to_move_to.empty? || !(/^[a-h][1-8]$/ =~ square_to_move_to)
+    while square_to_move_to.empty? || !(/^[a-h][1-8]$/i =~ square_to_move_to)
       puts 'Enter a valid piece'
       square_to_move_to = gets.chomp
     end
-    until @@board.check_for_valid_square?(piece_to_play, square_to_move_to )
+    until @@board.check_for_valid_square?(piece_to_play, square_to_move_to, @piece)
       puts 'That square cannot be reached'
       puts 'Enter a valid square'
       square_to_move_to = gets.chomp
-      while square_to_move_to.empty? || !(/^[a-h][1-8]$/ =~ square_to_move_to )
+      while square_to_move_to.empty? || !(/^[a-h][1-8]$/i =~ square_to_move_to )
         puts 'Enter a valid piece'
         square_to_move_to  = gets.chomp
       end
     end
+    return false if @@board.stalemate?(@piece) || @@board.checkmate_in_check?(@piece)
     promote(square_to_move_to)
-    if @@board.stalemate?
-      puts 'Stalemate!'
-      return false
-    end
     true
   end
 
@@ -89,9 +85,9 @@ class Player
     when '2'
       return '  ♛  '
     when '3'
-      return '  ♝  '
-    when '4'
       return '  ♜  '
+    when '4'
+      return '  ♝  '
     end
   end
 
@@ -102,9 +98,9 @@ class Player
     when '2'
       return '  ♕  '
     when '3'
-      return '  ♗  '
-    when '4'
       return '  ♖  '
+    when '4'
+      return '  ♗  '
     end
   end
 end

@@ -5,66 +5,11 @@ require_relative 'pawn'
 require_relative 'king'
 require_relative 'bishop'
 require_relative 'queen'
+require_relative 'pieces'
 class Board
-  attr_reader :pieces
   def initialize
     @array = populate_board
-    @pieces = ['♟', '♙', '♜', '♖', '♞', '♘', '♝', '♗', '♛', '♕', '♚', '♔']
-  end
-
-  def populate_board
-    array = Array.new(8) { Array.new(8) { '     ' } }
-    0.upto(7) do |i|
-      array[1][i] = '  ♟  '.black
-      array[6][i] = '  ♙  '
-    end
-    array[0][0] = '  ♜  '.black
-    array[7][0]  = '  ♖  '
-
-    array[0][1] = '  ♞  '.black
-    array[7][1]  = '  ♘  '
-
-    array[0][2] = '  ♝  '.black
-    array[7][2]  = '  ♗  '
-
-    array[0][3] = '  ♛  '.black
-    array[7][3]  = '  ♕  '
-
-    array[0][4] = '  ♚  '.black
-    array[7][4]  = '  ♔  '
-
-    array[0][5] = '  ♝  '.black
-    array[7][5]  = '  ♗  '
-
-    array[0][6] = '  ♞  '.black
-    array[7][6]  = '  ♘  '
-
-    array[0][7] = '  ♜  '.black
-    array[7][7]  = '  ♖  '
-    colored_board_array = color_board(array)
-    colored_board_array
-  end
-
-  def color_board(array)
-    copied_array = array
-    copied_array.each_with_index do |subarray, idx|
-      subarray.each_with_index do |sub_sub_array, jdx|
-        if idx.even?
-          if jdx.even?
-            array[idx][jdx] = sub_sub_array.on_light_black
-          else
-            array[idx][jdx] = sub_sub_array.on_light_white
-          end
-        else
-          if jdx.odd?
-            array[idx][jdx] = sub_sub_array.on_light_black
-          else
-            array[idx][jdx] = sub_sub_array.on_light_white
-          end
-        end
-      end
-    end
-    array
+    @pieces = Pieces.new
   end
 
   def print_board(array = @array)
@@ -76,120 +21,73 @@ class Board
     print "    a    b    c    d    e    f    g    h  \n"
   end
 
-  def change_alphabet_to_array(source)
-    splited_source = source.split('')
-    case splited_source[0]
-    when 'a'
-      column = 0
-    when 'b'
-      column = 1
-    when 'c'
-      column = 2
-    when 'd'
-      column = 3
-    when 'e'
-      column = 4
-    when 'f'
-      column = 5
-    when 'g'
-      column = 6
-    when 'h'
-      column= 7
-    else
-      return -1
-    end
-    row = change_number_to_array(splited_source[1])
-    return row, column
-  end
-
-  def change_number_to_array(source)
-    case source
-    when '1'
-      row = 7
-    when '2'
-      row = 6
-    when '3'
-      row = 5
-    when '4'
-      row = 4
-    when '5'
-      row = 3
-    when '6'
-      row = 2
-    when '7'
-      row = 1
-    when '8'
-      row = 0
-    else
-      return -1
-    end
-    row
-  end
-
-  def piece_method_to_call?(row, column, array, color_piece, pieces, opponent_piece)
-    rook = Rook.new
-    knight = Knight.new
-    pawn = Pawn.new
-    king = King.new
-    bishop = Bishop.new
-    queen = Queen.new
-    if array[row][column].split('').include?('♟') || array[row][column].split('').include?('♙')
-      @chess_piece_array = pawn.pawn_move(array, row, column, pieces, color_piece, opponent_piece, @pieces)
-      @valid_squares = pawn.green_square_array
-    elsif array[row][column].split('').include?('♜') || array[row][column].split('').include?('♖')
-      @chess_piece_array = rook.find_moves(array, row, column, pieces, color_piece, opponent_piece)
-      @valid_squares = rook.green_square_array
-    elsif array[row][column].split('').include?('♞') || array[row][column].split('').include?('♘')
-      @chess_piece_array = knight.create_children(row, column, array, pieces)
-      @valid_squares = knight.green_square_array
-    elsif array[row][column].split('').include?('♝') || array[row][column].split('').include?('♗')
-      @chess_piece_array = bishop.bishop_move(array, row, column, pieces, opponent_piece)
-      @valid_squares = bishop.green_square_array
-    elsif array[row][column].split('').include?('♛') || array[row][column].split('').include?('♕')
-      @chess_piece_array = queen.queen_move(array, row, column, pieces, color_piece, opponent_piece)
-      @valid_squares = queen.green_square_array
-    elsif array[row][column].split('').include?('♚') || array[row][column].split('').include?('♔')
-      @chess_piece_array = king.king_move(array, row, column, pieces)
-      @valid_squares = king.green_square_array
-    end
-    @valid_squares.empty? ? false : true
-  end
-
-  def check_for_valid_square?(piece_to_play, coord)
-    source_row, source_column = change_alphabet_to_array(piece_to_play)
-    row, column = change_alphabet_to_array(coord)
+  def check_for_valid_square?(piece_to_play, coord, color_piece)
+    source_row, source_column = @pieces.change_alphabet_to_array(piece_to_play)
+    row, column = @pieces.change_alphabet_to_array(coord)
     if @valid_squares.include?([row, column])
       @array[row][column] = @array[source_row][source_column]
       @array[source_row][source_column] = '     '
       color_board(@array)
-      print_board
+      if check?('black') || check?('white')
+        puts "You're in check"
+        @array = @global_board_array
+        return true
+      end
+      print_board(color_board(@array))
       return true
     end
     false
   end
 
-  def stalemate? # still in testing stage
-    white_pieces = ['♔', '♕', '♖', '♗', '♘', '♙']
-    black_pieces = ['♚', '♛', '♜', '♝', '♞', '♟']
-    copied_array = Marshal.load Marshal.dump(@array)
+  def check?(color_piece, array = @array) # still in testing stage
+    copied_array = Marshal.load Marshal.dump(array)
     available_moves = []
-    @array.each_with_index do |subarray, row|
+    if color_piece == 'black' 
+      chess_piece = @pieces.black_pieces
+    else
+      chess_piece = @pieces.white_pieces
+    end
+    array.each_with_index do |subarray, row|
       subarray.each_with_index do |sub_sub_array, column|
-        if (white_pieces & @array[row][column].split('')).any?
-          piece_method_to_call?(row, column, copied_array, 'white', white_pieces, black_pieces)
-          available_moves << @valid_squares
-        end
-        if (black_pieces & @array[row][column].split('')).any?
-          piece_method_to_call?(row, column, copied_array, 'black', black_pieces, white_pieces)
-          available_moves << @valid_squares
+        next if /[♔♚]/ =~ sub_sub_array || !(@pieces.all_chess_pieces & sub_sub_array.split('')).any?
+        if (chess_piece & array[row][column].split('')).any?
+          valid_squares = piece_method_to_call([row, column], copied_array, color_piece)
+          valid_squares.each do |item|
+            available_moves << item
+          end
         end
       end
     end
-    available_moves.flatten.empty? ? true : false
+    king_coord = look_for_king(color_piece, array)
+    if available_moves.include?(king_coord)
+      @global_board_array = array
+      @global_board_array[king_coord[0]][king_coord[1]] = array[king_coord[0]][king_coord[1]].on_red
+      return true 
+    end
+  false
+end
+
+  def checkmate_in_check?(color_piece)
+    if checkmate?(color_piece) && (check?('black') || check?('white'))
+      puts 'Checkmate!'.red
+      if color_piece == 'black'
+        puts 'Black wins! 0 - 1'
+      else
+        puts 'White wins! 1 - 0'
+      end
+    end
+  end
+
+  def stalemate?(color_piece)
+    if !check?(color_piece) && checkmate?(color_piece)
+      puts 'Stalemate!'.red
+      return true 
+    end
+    false
   end
 
   def promotion?(piece_to_change, color_piece)
-    row, column = change_alphabet_to_array(piece_to_change)
+    row, column = @pieces.change_alphabet_to_array(piece_to_change)
     if /[♟♙]/ =~ @array[row][column]
       if color_piece == 'black' && row == 7
         return true
@@ -202,20 +100,161 @@ class Board
   end
 
   def promote(change_to, destination)
-    dest_row, dest_column = change_alphabet_to_array(destination)
+    dest_row, dest_column = @pieces.change_alphabet_to_array(destination)
     @array[dest_row][dest_column] = change_to
     color_board(@array)
   end
 
-  def check_game_board_pieces?(coord, color_piece, chess_pieces, opponent_piece)
+  def check_game_board_pieces?(coord, color_piece)
    copied_array = Marshal.load Marshal.dump(@array)
-    row, column = change_alphabet_to_array(coord)
-    if (chess_pieces & @array[row][column].split('')).any? 
-      is_there_a_move = piece_method_to_call?(row, column, copied_array, color_piece, chess_pieces, opponent_piece)
-      print_board(@chess_piece_array)
-      return is_there_a_move
-    end
-      puts "You're playing from the wrong side of the board"
-      false
+   row, column = @pieces.change_alphabet_to_array(coord)
+   if color_piece == 'black' 
+    chess_pieces = @pieces.black_pieces
+  else
+    chess_pieces = @pieces.white_pieces
   end
+    if (chess_pieces & @array[row][column].split('')).any? 
+      is_there_a_move = piece_method_to_call(coord, copied_array, color_piece)
+      print_board(@chess_piece_array)
+      if is_there_a_move.empty?
+        puts 'There are no moves to make from this square'
+        return false
+      else
+        return true 
+      end
+    end
+    puts "You're playing from the wrong side of the board"
+    false
+  end
+
+  private
+
+  def look_for_king(color_piece, array)
+    array.each_with_index do |subarray, row|
+      subarray.each_with_index do |sub_sub_array, column|
+        if color_piece == 'white'
+          if array[row][column].split('').include?('♚')
+            return [row, column]
+          end
+        else
+          if array[row][column].split('').include?('♔')
+            return [row, column]
+          end
+        end
+      end
+    end
+  end
+
+  def piece_method_to_call(coord, array, color_piece)
+    rook = Rook.new
+    knight = Knight.new
+    pawn = Pawn.new
+    king = King.new
+    bishop = Bishop.new
+    queen = Queen.new
+    row, column = @pieces.change_alphabet_to_array(coord)
+    if array[row][column].split('').include?('♟') || array[row][column].split('').include?('♙')
+      @chess_piece_array = pawn.pawn_move(array, coord, color_piece)
+      valid_squares = pawn.green_square_array
+    elsif array[row][column].split('').include?('♜') || array[row][column].split('').include?('♖')
+      @chess_piece_array = rook.find_moves(array, coord, color_piece)
+      valid_squares = rook.green_square_array
+    elsif array[row][column].split('').include?('♞') || array[row][column].split('').include?('♘')
+      @chess_piece_array = knight.create_children(coord, array, color_piece)
+      valid_squares = knight.green_square_array
+    elsif array[row][column].split('').include?('♝') || array[row][column].split('').include?('♗')
+      @chess_piece_array = bishop.bishop_move(array, coord, color_piece)
+      valid_squares = bishop.green_square_array
+    elsif array[row][column].split('').include?('♛') || array[row][column].split('').include?('♕')
+      @chess_piece_array = queen.queen_move(array, coord, color_piece)
+      valid_squares = queen.green_square_array
+    elsif array[row][column].split('').include?('♚') || array[row][column].split('').include?('♔')
+      @chess_piece_array = king.king_move(array, coord, color_piece)
+      @king_possible_moves = king.green_square_array
+      valid_squares = king.green_square_array
+    end
+    @valid_squares = valid_squares
+    valid_squares
+  end
+
+  def populate_board
+    array = Array.new(8) { Array.new(8) { '     ' } }
+   0.upto(7) do |i|
+     array[1][i] = '  ♟  '
+     array[6][i] = '  ♙  '
+   end
+   array[0][0] = '  ♜  '
+   array[7][0]  = '  ♖  '
+
+   array[0][1] = '  ♞  '
+   array[7][1]  = '  ♘  '
+
+   array[0][2] = '  ♝  '
+   array[7][2]  = '  ♗  '
+
+   array[0][3] = '  ♛  '
+   array[7][3]  = '  ♕  '
+
+   array[0][4] = '  ♚  '
+   array[7][4]  = '  ♔  '
+
+   array[0][5] = '  ♝  '
+   array[7][5]  = '  ♗  '
+
+   array[0][6] = '  ♞  '
+   array[7][6]  = '  ♘  '
+
+   array[0][7] = '  ♜  '
+   array[7][7]  = '  ♖  '
+   colored_board_array = color_board(array)
+   colored_board_array
+ end
+
+ def color_board(array)
+   copied_array = array
+   copied_array.each_with_index do |subarray, idx|
+     subarray.each_with_index do |sub_sub_array, jdx|
+       if idx.even?
+         if jdx.even?
+           array[idx][jdx] = sub_sub_array.on_light_black
+         else
+           array[idx][jdx] = sub_sub_array.on_light_white
+         end
+       else
+         if jdx.odd?
+           array[idx][jdx] = sub_sub_array.on_light_black
+         else
+           array[idx][jdx] = sub_sub_array.on_light_white
+         end
+       end
+     end
+   end
+   array
+ end
+
+ def checkmate?(color_piece)
+  copied_array = Marshal.load Marshal.dump(@array)
+  row, column = look_for_king(color_piece, copied_array)
+  king = King.new
+  available_moves = []
+  if color_piece == 'black'
+    pass_color_piece = 'white' 
+    chess_piece = @pieces.white_pieces
+  else
+    pass_color_piece = 'black' 
+    chess_piece = @pieces.black_pieces
+  end
+  valid_squares = piece_method_to_call([row, column], copied_array, pass_color_piece)
+  piece = Pieces.new
+  piece.check_for_checkmate = true
+  @array.each_with_index do |subarray, row|
+    subarray.each_with_index do |sub_sub_array, column|
+      if (chess_piece & @array[row][column].split('')).any?
+        return true if piece_method_to_call([row, column], copied_array, pass_color_piece) && valid_squares.empty?
+      end
+    end
+  end
+  piece.check_for_checkmate = false
+  false
+end
 end
