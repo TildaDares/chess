@@ -1,8 +1,14 @@
 require 'colorize'
 require_relative 'pieces'
+require_relative 'board'
 class Pawn < Pieces
   attr_reader :green_square_array
+  attr_accessor :en_passant_moves, :en_passant_capture
   def initialize
+    @blacks_moves = []
+    @white_moves = []
+    @en_passant_moves = [false]
+    @en_passant_capture = []
     super()
   end
 
@@ -10,7 +16,8 @@ class Pawn < Pieces
     @green_square_array = []
     @array = array
     @color_piece = color_piece
-    if @color_piece == 'black' 
+    @row, @column = change_alphabet_to_array(coord)
+    if @color_piece == 'black'
       @opponent_pieces = @white_pieces
       @opponent_color_piece = 'white'
       @symbol = '♟'
@@ -23,72 +30,84 @@ class Pawn < Pieces
       add_row = @row - 1
       add_row2 = @row - 2
     end
-    @row, @column = change_alphabet_to_array(coord)
-    if (@row == 1 && @color_piece == 'black') || (@row == 6 && @color_piece == 'white')
-      pawn_first_move(add_row)
-      pawn_second_move(add_row2)
-    else
-      pawn_second_move(add_row)
-    end
+    pawn_first_move(add_row, add_row2)
+    en_passant
     capture_diagonally
-  end
+    return look_ahead(@green_square_array, @array, @symbol, @opponent_color_piece, coord) if Board.check_for_checkmate
 
-  private
-  
-  def pawn_first_move(add_row)
-    return if (@all_chess_pieces & @array[add_row][@column].split('')).any? || add_row < 0 || add_row > 8
-    @array[add_row][@column] = @array[add_row][@column].on_green
-    @green_square_array << [add_row, @column]
-  end
-
-  def pawn_second_move(add_row2)
-    return if (@all_chess_pieces & @array[add_row2][@column].split('')).any? || add_row2 < 0 || add_row2 > 8
-    @array[add_row2][@column] = @array[add_row2][@column].on_green
-    @green_square_array << [add_row2, @column]
-  end
-
-  def pawn_next_move(add_row)
-    return if (@all_chess_pieces & @array[add_row][@column].split('')).any? || add_row < 0 || add_row > 8
-    @array[add_row][@column] = @array[add_row][@column].on_green
-    @green_square_array << [add_row, @column]
-  end
-
-  def capture_diagonally
-    if @color_piece == 'white'
-      capture_diagonally_for_white
-    else
-      capture_diagonally_for_black
+    unless Board.check_for_check
+      @color_piece == 'white' ? @white_moves << coord : @blacks_moves << coord
+      check_for_legal_moves(@green_square_array, @array, @symbol, @opponent_color_piece, coord)
     end
-    return look_ahead(@green_square_array, @array, @symbol, @opponent_color_piece) if @check_for_checkmate == true
     @array
   end
 
-  def capture_diagonally_for_white
-    if @row - 1 >= 0 && @column - 1 >= 0
-      if (@opponent_pieces & @array[@row - 1][@column - 1].split('')).any?
-        @array[@row - 1][@column - 1] = @array[@row - 1][@column - 1].on_green
-        @green_square_array << [@row - 1, @column - 1]
+  private
+
+  def pawn_first_move(add_row, add_row2)
+    2.times do
+      return if (@all_chess_pieces & @array[add_row][@column].split('')).any? || add_row.negative? || add_row > 8
+
+      @green_square_array << [add_row, @column]
+      return unless (@row == 1 && @color_piece == 'black') || (@row == 6 && @color_piece == 'white')
+
+      add_row = add_row2
+    end
+  end
+
+  def capture_diagonally
+    @color_piece == 'white' ? dr = [-1, -1] : dr = [+1, +1]
+    dc = [-1, +1]
+    2.times do |i|
+      if (@row + dr[i]).between?(0, 7) && (@column + dc[i]).between?(0, 7)
+        if (@opponent_pieces & @array[@row + dr[i]][@column + dc[i]].split('')).any?
+          @green_square_array << [@row + dr[i], @column + dc[i]]
+        end
       end
     end
-    if @row - 1 >= 0 && @column + 1 <= 7
-      if (@opponent_pieces & @array[@row - 1][@column + 1].split('')).any?
-        @array[@row - 1][@column + 1] = @array[@row - 1][@column + 1].on_green
-        @green_square_array << [@row - 1, @column + 1]
+  end
+  
+  def en_passant
+    return if @blacks_moves.empty? || @white_moves.empty?
+
+    en_passant_black
+    en_passant_white
+  end
+
+  def en_passant_black
+    dr = [+1, +1]
+    dc = [-1, +1]
+    row, column = change_alphabet_to_array(@white_moves[-1])
+    2.times do |i|
+      if @color_piece == 'black' && row == 6 && @row == 4
+        if (@column + dc[i]).between?(0, 7) && (@row + dr[i]).between?(0, 7)
+          if column - @column == 1 || column - @column == -1
+            if @array[@row][@column + dc[i]].split('').include?('♙')
+              @en_passant_moves[0] = true
+              @en_passant_moves << [@row + dr[i], @column + dc[i]] << [@row, @column + dc[i]]
+              @green_square_array << [@row + dr[i], @column + dc[i]]
+            end
+          end
+        end
       end
     end
   end
 
-  def capture_diagonally_for_black
-    if @row + 1 <= 7 && @column - 1 >= 0
-      if (@opponent_pieces & @array[@row + 1][@column - 1].split('')).any?
-        @array[@row + 1][@column - 1] = @array[@row + 1][@column - 1].on_green
-        @green_square_array << [@row + 1, @column - 1]
-      end
-    end
-    if @row + 1 <= 7 && @column + 1 <= 7
-      if (@opponent_pieces & @array[@row + 1][@column + 1].split('')).any?
-        @array[@row + 1][@column + 1] = @array[@row + 1][@column + 1].on_green
-        @green_square_array << [@row + 1, @column + 1]
+  def en_passant_white
+    dr = [-1, -1]
+    dc = [+1, -1]
+    row, column = change_alphabet_to_array(@blacks_moves[-1])
+    2.times do |i|
+      if @color_piece == 'white' && row == 1 && @row == 3
+        if (@column + dc[i]).between?(0, 7) && (@row + dr[i]).between?(0, 7)
+          if column - @column == 1 || column - @column == -1
+            if @array[@row][@column + dc[i]].split('').include?('♟')
+              @en_passant_moves[0] = true
+              @en_passant_moves << [@row + dr[i], @column + dc[i]] << [@row, @column + dc[i]]
+              @green_square_array << [@row + dr[i], @column + dc[i]]
+            end
+          end
+        end
       end
     end
   end

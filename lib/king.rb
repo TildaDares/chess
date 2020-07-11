@@ -1,8 +1,13 @@
 require 'colorize'
 require_relative 'pieces'
+require_relative 'board'
 class King < Pieces
   attr_reader :green_square_array
+  attr_accessor :castling_moves
   def initialize
+    @castling_moves = [false]
+    @blacks_moves = []
+    @white_moves = []
     super()
   end
 
@@ -10,8 +15,8 @@ class King < Pieces
     @green_square_array = []
     @array = array
     @row, @column = change_alphabet_to_array(coord)
-    if color_piece == 'black' 
-      @king = '  ♚  ' 
+    if color_piece == 'black'
+      @king = '  ♚  '
       @opponent_color_piece = 'white'
       @piece = @black_pieces
     else
@@ -19,79 +24,90 @@ class King < Pieces
       @opponent_color_piece = 'black'
       @piece = @white_pieces
     end
-    remove = -1
-    one_sqr_apart = -2
-    2.times do 
-      sideways(remove)
-      backwards_forward(remove)
-      diagonals(remove)
-      antidiagonals(remove)
-      remove = 1
+    movesets
+    castling(color_piece, coord)
+    unless Board.check_for_check
+     color_piece == 'white' ? @white_moves << coord : @blacks_moves << coord
+     check_for_legal_moves(@green_square_array, @array, @king, @opponent_color_piece, coord)
     end
     @array
   end
 
   private
 
-  def sideways(remove)
-    unless ((@column + remove) > 7 || (@column + remove) < 0)
-      unless (@piece & @array[@row][@column + remove].split('')).any?
-        unless ((@column + one_sqr_apart) > 7 || (@column + one_sqr_apart) < 0)
-          return if /♚♔/ =~ @array[@row][@column + one_sqr_apart]
+  def movesets
+    dr = [-1, -1, -1, 0, 0, +1, +1, +1]
+    dc = [-1, 0, +1, -1, +1, -1, 0, +1]
+    8.times do |i|
+      if (@row + dr[i]).between?(0, 7) && (@column + dc[i]).between?(0, 7)
+        unless (@piece & @array[@row + dr[i]][@column + dc[i]].split('')).any?
+          @green_square_array << [@row + dr[i], @column + dc[i]]
         end
-        return if check_for_legal_moves([@row, @column + remove])
-        @array[@row][@column + remove] = @array[@row][@column + remove].on_green
-        @green_square_array << [@row, @column + remove]
       end
     end
   end
 
-  def backwards_forward(remove)
-    unless (@row + remove > 7 || @row + remove < 0)
-      unless (@piece & @array[@row + remove][@column].split('')).any?
-        unless (@row + one_sqr_apart > 7 || @row + one_sqr_apart < 0)
-          return if /♚♔/ =~ @array[@row + one_sqr_apart][@column]
-        end
-        return if check_for_legal_moves([@row + remove, @column])
-        @array[@row + remove][@column] = @array[@row + remove][@column].on_green
-        @green_square_array << [@row + remove, @column]
-      end
+  def castling(color_piece, coord)
+    if color_piece == 'black'
+      castling_black(coord)
+    else
+      castling_white(coord)
     end
   end
 
-  def diagonals(remove)
-    if ((@row + remove) >= 0 && (@row + remove) <= 7) && ((@column + remove) >= 0 && (@column + remove) <= 7)
-      unless (@piece & @array[@row + remove][@column + remove].split('')).any?
-        if ((@row + one_sqr_apart) >= 0 && (@row + one_sqr_apart) <= 7) && ((@column + one_sqr_apart) >= 0 && (@column + one_sqr_apart) <= 7)
-          return if /♚♔/ =~ @array[@row + one_sqr_apart][@column + one_sqr_apart]
-        end
-        return if check_for_legal_moves([@row + remove, @column + remove])
-        @array[@row + remove][@column + remove] = @array[@row + remove][@column + remove].on_green
-        @green_square_array << [@row + remove, @column + remove]
-      end
-    end
-  end
-
-  def antidiagonals(remove)
-    if ((@row - remove) <= 7 && (@row + remove) >= 0) || ((@row + remove) <= 7 && (@row - remove) >= 0)
-      return if ((@column - remove) <= 7 && (@column + remove) >= 0) || ((@column + remove) <= 7 || (@column - remove) >= 0)
-      unless (@piece & @array[@row - remove][@column + remove].split('')).any?
-        unless ((@row - one_sqr_apart) <= 7 && (@row + one_sqr_apart) >= 0) || ((@row + one_sqr_apart) <= 7 && (@row - one_sqr_apart) >= 0)
-          return if ((@column - one_sqr_apart) <= 7 && (@column + one_sqr_apart) >= 0) || ((@column + one_sqr_apart) <= 7 || (@column - one_sqr_apart) >= 0)
-          return if /♚♔/ =~ @array[@row - one_sqr_apart][@column + one_sqr_apart]
-        end
-        return if check_for_legal_moves([@row - remove, @column + remove])
-        @array[@row - remove][@column + remove] = @array[@row - remove][@column + remove].on_green
-        @green_square_array << [@row - remove, @column + remove]
-      end
-    end
-  end
-
-  def check_for_legal_moves(possible_moves)
-    dup_array = Marshal.load Marshal.dump(@array)
-    dup_array[@row][@column] = '     '
-    dup_array[possible_moves[0]][possible_moves[1]] = @king
+  def castling_black(coord)
     board = Board.new
-    return board.check?(@opponent_color_piece, dup_array)
+    return unless @blacks_moves.empty?
+    if coord == 'e8'
+      if !@black_kingside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('up')
+        if (@column + 2).between?(0, 7)
+          @castling_moves[0] = true
+          @castling_moves << 'g8' << 'f8' << 'h8'
+          @green_square_array << [@row, @column + 2]
+        end
+      end
+      if !@black_queenside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('down')
+        if (@column - 2).between?(0, 7)
+          @castling_moves[0] = true
+          @castling_moves << 'c8' << 'd8' << 'a8'
+          @green_square_array << [@row, @column - 2]
+        end
+      end
+    end
+  end
+
+  def castling_white(coord)
+    board = Board.new
+    return unless @white_moves.empty?
+    if coord == 'e1'
+      if !@white_kingside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('up')
+        if (@column + 2).between?(0, 7)
+          @castling_moves[0] = true
+          @castling_moves << 'g1' << 'f1' << 'h1'
+          @green_square_array << [@row, @column + 2]
+        end
+      end
+      if !@white_queenside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('down')
+        if (@column - 2).between?(0, 7)
+          @castling_moves[0] = true
+          @castling_moves << 'c1' << 'd1' << 'a1'
+          @green_square_array << [@row, @column - 2]
+        end
+      end
+    end
+  end
+
+  def nothing_in_between_king_and_rook(direction)
+    if direction == 'down'
+      (@column - 1).downto(1) do |i|
+        return false if (@all_chess_pieces & @array[@row][i].split('')).any?
+      end
+      true
+    else
+      (@column + 1).upto(6) do |i|
+        return false if (@all_chess_pieces & @array[@row][i].split('')).any?
+      end
+      true
+    end
   end
 end

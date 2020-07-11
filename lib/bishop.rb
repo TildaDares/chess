@@ -1,15 +1,16 @@
 require 'colorize'
 require_relative 'pieces'
+require_relative 'board'
 class Bishop < Pieces
   attr_reader :green_square_array
   def initialize
     super()
   end
 
-  def bishop_move(array, coord, color_piece)
+  def bishop_move(array, coord, color_piece, queen_caller = true)
     @green_square_array = []
     @array = array
-    if color_piece == 'black' 
+    if color_piece == 'black'
       @opponent_piece = @white_pieces
       @piece = @black_pieces
       @symbol = '♝'
@@ -25,22 +26,23 @@ class Bishop < Pieces
     upwards_diagonal
     downwards_anti_diagonal
     upwards_anti_diagonal
-    return look_ahead(@green_square_array, @array, @symbol, @opp_color_piece) if @check_for_checkmate == true
+    return look_ahead(@green_square_array, @array, @symbol, @opp_color_piece, coord) if Board.check_for_checkmate
+
+    check_for_legal_moves(@green_square_array, @array, @symbol, @opp_color_piece, coord) if !Board.check_for_check && queen_caller
     @array
   end
-  
+
   private
-  
+
   def downwards_diagonal
     i = 1
     while @row + i <= 7 && @column + i <= 7
       break if (@piece & @array[@row + i][@column + i].split('')).any?
+
       if (@opponent_piece & @array[@row + i][@column + i].split('')).any?
-        @array[@row + i][@column + i] = @array[@row + i][@column + i].on_green
         @green_square_array << [@row + i, @column + i]
         break
       end
-        @array[@row + i][@column + i] = @array[@row + i][@column + i].on_green
         @green_square_array << [@row + i, @column + i]
         i += 1
     end
@@ -48,14 +50,13 @@ class Bishop < Pieces
 
   def upwards_diagonal
     i = 1
-    while @row - i >= 0  && @column - i >= 0
+    while @row - i >= 0 && @column - i >= 0
       break if (@piece & @array[@row - i][@column - i].split('')).any?
+
       if (@opponent_piece & @array[@row - i][@column - i].split('')).any?
-        @array[@row - i][@column - i] = @array[@row - i][@column - i].on_green
         @green_square_array << [@row - i, @column - i]
         break
       end
-      @array[@row - i][@column - i] = @array[@row - i][@column - i].on_green
       @green_square_array << [@row - i, @column - i]
       i += 1
     end
@@ -65,12 +66,11 @@ class Bishop < Pieces
     i = 1
     while @row + i <= 7 && @column - i >= 0
       break if (@piece & @array[@row + i][@column - i].split('')).any?
+
       if (@opponent_piece & @array[@row + i][@column - i].split('')).any?
-        @array[@row + i][@column - i] = @array[@row + i][@column - i].on_green
         @green_square_array << [@row + i, @column - i]
         break
       end
-        @array[@row + i][@column - i] = @array[@row + i][@column - i].on_green
         @green_square_array << [@row + i, @column - i]
         i += 1
     end
@@ -80,14 +80,13 @@ class Bishop < Pieces
     i = 1
     while @row - i >= 0 && @column + i <= 7
       break if (@piece & @array[@row - i][@column + i].split('')).any?
+
       if (@opponent_piece & @array[@row - i][@column + i].split('')).any?
-        @array[@row - i][@column + i] = @array[@row - i][@column + i].on_green
         @green_square_array << [@row - i, @column + i]
         break
       end
-        @array[@row - i][@column + i] = @array[@row - i][@column + i].on_green
-        @green_square_array << [@row - i, @column + i]
-        i += 1
+      @green_square_array << [@row - i, @column + i]
+      i += 1
     end
   end
 end
