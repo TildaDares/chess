@@ -60,14 +60,14 @@ class King < Pieces
     return unless @blacks_moves.empty?
     if coord == 'e8'
       if !@black_kingside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('up')
-        if (@column + 2).between?(0, 7)
+        if (@column + 2).between?(0, 7) && !castling_through_check(@column + 1)
           @castling_moves[0] = true
           @castling_moves << 'g8' << 'f8' << 'h8'
           @green_square_array << [@row, @column + 2]
         end
       end
       if !@black_queenside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('down')
-        if (@column - 2).between?(0, 7)
+        if (@column - 2).between?(0, 7) && !castling_through_check(@column - 1)
           @castling_moves[0] = true
           @castling_moves << 'c8' << 'd8' << 'a8'
           @green_square_array << [@row, @column - 2]
@@ -81,14 +81,14 @@ class King < Pieces
     return unless @white_moves.empty?
     if coord == 'e1'
       if !@white_kingside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('up')
-        if (@column + 2).between?(0, 7)
+        if (@column + 2).between?(0, 7) && !castling_through_check(@column + 1)
           @castling_moves[0] = true
           @castling_moves << 'g1' << 'f1' << 'h1'
           @green_square_array << [@row, @column + 2]
         end
       end
       if !@white_queenside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('down')
-        if (@column - 2).between?(0, 7)
+        if (@column - 2).between?(0, 7) && !castling_through_check(@column - 1)
           @castling_moves[0] = true
           @castling_moves << 'c1' << 'd1' << 'a1'
           @green_square_array << [@row, @column - 2]
@@ -109,5 +109,13 @@ class King < Pieces
       end
       true
     end
+  end
+
+  def castling_through_check(column)
+    board = Board.new
+    dup_array = Marshal.load Marshal.dump(@array)
+    dup_array[@row][@column] = '    '
+    dup_array[@row][column] = @king
+    return board.check?(@opponent_color_piece, dup_array)
   end
 end

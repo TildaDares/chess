@@ -23,16 +23,20 @@ class Knight < Pieces
     end
     moves = []
     @green_square_array = []
+
     8.times do |i|
       moves << [@row + @chess_row[i], @column + @chess_col[i]]
     end
+    
     valid_moves = moves.select do |coord|
       (coord[0].between?(0, 7)) && (coord[1].between?(0, 7))
     end
+
     valid_moves.each do |valid_coord|
       next if (own_pieces & @array[valid_coord[0]][valid_coord[1]].split('')).any?
       @green_square_array << [valid_coord[0], valid_coord[1]]
     end
+
     return look_ahead(@green_square_array, @array, @symbol, @opponent_color_piece, coord) if Board.check_for_checkmate
 
     check_for_legal_moves(@green_square_array, @array, @symbol, @opponent_color_piece, coord) unless Board.check_for_check

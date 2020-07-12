@@ -58,6 +58,7 @@ class Pawn < Pieces
   def capture_diagonally
     @color_piece == 'white' ? dr = [-1, -1] : dr = [+1, +1]
     dc = [-1, +1]
+
     2.times do |i|
       if (@row + dr[i]).between?(0, 7) && (@column + dc[i]).between?(0, 7)
         if (@opponent_pieces & @array[@row + dr[i]][@column + dc[i]].split('')).any?
@@ -78,6 +79,7 @@ class Pawn < Pieces
     dr = [+1, +1]
     dc = [-1, +1]
     row, column = change_alphabet_to_array(@white_moves[-1])
+
     2.times do |i|
       if @color_piece == 'black' && row == 6 && @row == 4
         if (@column + dc[i]).between?(0, 7) && (@row + dr[i]).between?(0, 7)
@@ -97,6 +99,7 @@ class Pawn < Pieces
     dr = [-1, -1]
     dc = [+1, -1]
     row, column = change_alphabet_to_array(@blacks_moves[-1])
+
     2.times do |i|
       if @color_piece == 'white' && row == 1 && @row == 3
         if (@column + dc[i]).between?(0, 7) && (@row + dr[i]).between?(0, 7)

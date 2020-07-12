@@ -38,7 +38,7 @@ class Rook < Pieces
     i = @row
     j = @row
     loop do
-      n == 7 ? i += 1 : i -=1
+      n == 7 ? i += 1 : i -= 1
       break if i.negative? || i > 7
       break if (@own_pieces & @array[i][@column].split('')).any?
 
@@ -50,7 +50,7 @@ class Rook < Pieces
     end
 
     loop do
-      n == 7 ? j -= 1 : j +=1
+      n == 7 ? j -= 1 : j += 1
       break if j > 7 || j.negative?
       break if (@own_pieces & @array[j][@column].split('')).any?
 
@@ -77,7 +77,7 @@ class Rook < Pieces
     col = @column - 1
     col.downto(0) do |i|
       break if (@own_pieces & @array[@row][i].split('')).any?
-      
+
       if (@opponent_piece & @array[@row][i].split('')).any?
         @green_square_array << [@row, i]
         break

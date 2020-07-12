@@ -6,6 +6,9 @@ require_relative 'king'
 require_relative 'bishop'
 require_relative 'queen'
 require_relative 'pieces'
+require_relative 'computer'
+require_relative 'player'
+require 'yaml'
 class Board
   def initialize
     @array = populate_board
@@ -26,6 +29,10 @@ class Board
     @@check_for_check
   end
 
+  def self.player_attr=(value)
+    @@player_attr = value
+  end
+
   def print_board(array = @array)
     i = 8
     0.upto(7) do |j|
@@ -35,13 +42,12 @@ class Board
     print "    a    b    c    d    e    f    g    h  \n"
   end
 
-  def check_for_valid_square?(piece_to_play, coord)
-    piece_to_play = piece_to_play.downcase
-    coord = coord.downcase
+  def check_for_valid_square?(piece_to_play, coord, valid_squares = @valid_squares)
+    piece_to_play = piece_to_play.downcase unless piece_to_play.is_a?(Array)
+    coord = coord.downcase unless coord.is_a?(Array)
     source_row, source_column = @pieces.change_alphabet_to_array(piece_to_play)
     row, column = @pieces.change_alphabet_to_array(coord)
-
-    if @valid_squares.include?([row, column])
+    if valid_squares.include?([row, column])
       castling_rules(coord)
       if @pawn.en_passant_moves[0] && @pawn.en_passant_moves[1] == [row, column]
         en_passant_true(piece_to_play, coord)
@@ -53,68 +59,18 @@ class Board
         @array[row][column] = @array[source_row][source_column]
         @array[source_row][source_column] = '     '
       end
+
       color_board(@array)
+      @array[row][column] = @array[row][column].on_light_yellow
+      @array[source_row][source_column] = '     '.on_light_yellow
       if check?('black') || check?('white')
-        puts "You're in check!".red
+        puts "Check!".red
         @array = @global_board_array
       end
       return true
+
     end
     false
-  end
-
-  def castling_rules(coord)
-    if coord == 'a8'
-      @pieces.black_queenside_rook = true
-    elsif coord == 'h8'
-      @pieces.black_kingside_rook = true
-    elsif coord == 'a1'
-      @pieces.white_queenside_rook = true
-    elsif coord == 'h1'
-      @pieces.white_kingside_rook = true
-    else
-      # do nothing
-    end
-  end
-
-  def castling(piece_to_play, coord)
-    if coord == @king.castling_moves[1]
-      king_dest = @king.castling_moves[1]
-      rook_dest = @king.castling_moves[2]
-      rook_loc = @king.castling_moves[3]
-    end
-    if @king.castling_moves.length > 4
-      if coord == @king.castling_moves[4]
-        king_dest = @king.castling_moves[4]
-        rook_dest = @king.castling_moves[5]
-        rook_loc = @king.castling_moves[6]
-      end
-    end
-    rook_loc_row, rook_loc_column = @pieces.change_alphabet_to_array(rook_loc)
-    king_loc_row, king_loc_column = @pieces.change_alphabet_to_array(piece_to_play)
-    king_row, king_column = @pieces.change_alphabet_to_array(king_dest)
-    rook_row, rook_column = @pieces.change_alphabet_to_array(rook_dest)
-    @array[king_row][king_column] = @array[king_loc_row][king_loc_column]
-    @array[king_loc_row][king_loc_column] = '     '
-    @array[rook_row][rook_column] = @array[rook_loc_row][rook_loc_column]
-    @array[rook_loc_row][rook_loc_column] = '     '
-    @king.castling_moves = [false]
-  end
-
-  def en_passant_true(source, destination)
-    source = source.downcase
-    destination = destination.downcase
-    source_row, source_column = @pieces.change_alphabet_to_array(source)
-    row, column = @pieces.change_alphabet_to_array(destination)
-
-    if @pawn.en_passant_moves[1] == [row, column]
-      captured_row = @pawn.en_passant_moves[2][0]
-      captured_column = @pawn.en_passant_moves[2][1]
-      @array[row][column] = @array[source_row][source_column]
-      @array[source_row][source_column] = '     '
-      @array[captured_row][captured_column] = '     '
-    end
-    @pawn.en_passant_moves = [false]
   end
 
   def check?(color_piece, array = @array)
@@ -173,7 +129,7 @@ class Board
   end
 
   def promotion?(piece_to_change, color_piece)
-    piece_to_change = piece_to_change.downcase
+    piece_to_change = piece_to_change.downcase unless piece_to_change.is_a?(Array)
     row, column = @pieces.change_alphabet_to_array(piece_to_change)
     if /[♟♙]/ =~ @array[row][column]
       if color_piece == 'black' && row == 7
@@ -218,7 +174,130 @@ class Board
     false
   end
 
+  def computer_move_to(color_piece)
+    play_from, move_to = computer_random_moves(color_piece)
+    valid_comp_sqr = [move_to]
+    check_for_valid_square?(play_from, move_to, valid_comp_sqr)
+    move_to
+  end
+
+  def save_game(color_piece)
+  hash = {
+    'board' => @array,
+    'player_attr' => @@player_attr,
+    'last_player' => color_piece
+  }
+    File.open('./saved_games/yourgame.yml', 'w') {|f| YAML.dump(hash, f)}
+    exit
+  end
+
+  def load_game(game_choice)
+    case game_choice
+    when '1'
+      yaml = YAML.load_file('./saved_games/canyoubeatme.yml')
+    when '2'
+      yaml = YAML.load_file('./saved_games/check.yml')
+    when '3'
+      yaml = YAML.load_file('./saved_games/youarerooked.yml')
+    else
+      yaml = YAML.load_file('./saved_games/yourgame.yml')
+    end
+    @array = yaml['board']
+    player1 = yaml['player_attr'][0]
+    player2 = yaml['player_attr'][1]
+    if yaml['color_piece'] == 'black'
+      return player2, player1
+    else
+      return player1, player2
+    end
+  end
+
   private
+
+  def castling_rules(coord)
+    if coord == 'a8'
+      @pieces.black_queenside_rook = true
+    elsif coord == 'h8'
+      @pieces.black_kingside_rook = true
+    elsif coord == 'a1'
+      @pieces.white_queenside_rook = true
+    elsif coord == 'h1'
+      @pieces.white_kingside_rook = true
+    else
+      # do nothing
+    end
+  end
+
+  def castling(piece_to_play, coord)
+    if coord == @king.castling_moves[1]
+      king_dest = @king.castling_moves[1]
+      rook_dest = @king.castling_moves[2]
+      rook_loc = @king.castling_moves[3]
+    end
+    if @king.castling_moves.length > 4
+      if coord == @king.castling_moves[4]
+        king_dest = @king.castling_moves[4]
+        rook_dest = @king.castling_moves[5]
+        rook_loc = @king.castling_moves[6]
+      end
+    end
+    
+    rook_loc_row, rook_loc_column = @pieces.change_alphabet_to_array(rook_loc)
+    king_loc_row, king_loc_column = @pieces.change_alphabet_to_array(piece_to_play)
+    king_row, king_column = @pieces.change_alphabet_to_array(king_dest)
+    rook_row, rook_column = @pieces.change_alphabet_to_array(rook_dest)
+    @array[king_row][king_column] = @array[king_loc_row][king_loc_column]
+    @array[king_loc_row][king_loc_column] = '     '
+    @array[rook_row][rook_column] = @array[rook_loc_row][rook_loc_column]
+    @array[rook_loc_row][rook_loc_column] = '     '
+    @king.castling_moves = [false]
+  end
+
+  def computer_random_moves(color_piece)
+    @@check_for_checkmate = false
+    @@check_for_check = false
+    possible_moves = []
+    legal_moves = []
+    moves = []
+    if color_piece == 'black'
+      chess_pieces = @pieces.black_pieces
+    else
+      chess_pieces = @pieces.white_pieces
+    end
+    copied_array = Marshal.load Marshal.dump(@array)
+    @array.each_with_index do |subarray, row|
+      subarray.each_with_index do |sub_sub_array, column|
+        if (chess_pieces & sub_sub_array.split('')).any?
+          valid_squares = piece_method_to_call([row, column], copied_array, color_piece)
+          unless valid_squares.empty?
+            possible_moves << [row, column]
+            mapped_valid_squares = valid_squares.map{ |item| item}
+            legal_moves << mapped_valid_squares
+          end
+        end
+      end
+    end
+    random_move = possible_moves.sample(1)
+    index_of_corr_legal_move = possible_moves.index(random_move.flatten)
+    move_to = legal_moves[index_of_corr_legal_move].sample(1)
+    [random_move.flatten, move_to.flatten]
+  end
+
+  def en_passant_true(source, destination)
+    source = source.downcase
+    destination = destination.downcase
+    source_row, source_column = @pieces.change_alphabet_to_array(source)
+    row, column = @pieces.change_alphabet_to_array(destination)
+
+    if @pawn.en_passant_moves[1] == [row, column]
+      captured_row = @pawn.en_passant_moves[2][0]
+      captured_column = @pawn.en_passant_moves[2][1]
+      @array[row][column] = @array[source_row][source_column]
+      @array[source_row][source_column] = '     '
+      @array[captured_row][captured_column] = '     '
+    end
+    @pawn.en_passant_moves = [false]
+  end
 
   def look_for_king(color_piece, array)
     array.each_with_index do |subarray, row|

@@ -17,6 +17,7 @@ class Queen < Pieces
       opponent_color_piece = 'black'
       symbol = '♕'
     end
+
     rook = Rook.new
     bishop = Bishop.new
     rook.find_moves(array, coord, color_piece, false)

@@ -69,12 +69,13 @@ class Pieces
   # The method places each piece's symbol in a possible location and checks if
   # that move will get it's king out of check and then RETURNS TRUE if it will and it
   # checks all the possible moves and not just the legal ones.
-  # Board#check? has a boolean that makes sure the method doesn't have a stack overflow 
+  # Board#check? has a boolean that makes sure the method doesn't have a stack overflow
   # because of the legal moves checks in each of
   # the piece's methods. #checkmate? makes use of this method
   def look_ahead(green_square_array, array, symbol, opponent_color_piece, coord)
     row, column = change_alphabet_to_array(coord)
     board = Board.new
+
     green_square_array.each do |green_array|
       copied_array = Marshal.load Marshal.dump(array)
       copied_array[row][column] = '    '
@@ -91,6 +92,7 @@ class Pieces
   def check_for_legal_moves(green_square_array, array, symbol, opponent_color_piece, coord)
     row, column = change_alphabet_to_array(coord)
     dup_possible_moves_array = Marshal.load Marshal.dump(green_square_array)
+
     dup_possible_moves_array.each do |possible_moves|
       dup_array = Marshal.load Marshal.dump(array)
       dup_array[row][column] = '     '
@@ -100,6 +102,7 @@ class Pieces
         green_square_array.delete(possible_moves)
         next
       end
+
       array[possible_moves[0]][possible_moves[1]] = array[possible_moves[0]][possible_moves[1]].on_green
     end
   end
