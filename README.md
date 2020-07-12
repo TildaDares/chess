@@ -11,8 +11,9 @@
 * Games can be saved
 * With AI that plays randomly but when it's king is in check it protects it
 To play this game clone this repo and run:
-`$ ruby lib/chess.rb`
+
+                 `$ ruby lib/chess.rb`
 
 Note: The game relies heavily on gem colorize so before running the program, install the gem by running
 
-`$ gem install colorize`
+                  `$ gem install colorize`
