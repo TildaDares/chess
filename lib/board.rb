@@ -132,12 +132,8 @@ class Board
     piece_to_change = piece_to_change.downcase unless piece_to_change.is_a?(Array)
     row, column = @pieces.change_alphabet_to_array(piece_to_change)
     if /[♟♙]/ =~ @array[row][column]
-      if color_piece == 'black' && row == 7
-        return true
-      end
-      if color_piece == 'white' && row.zero?
-        return true
-      end
+      return true if color_piece == 'black' && row == 7
+      return true if color_piece == 'white' && row.zero?
     end
     false
   end
@@ -206,9 +202,9 @@ class Board
     player1 = yaml['player_attr'][0]
     player2 = yaml['player_attr'][1]
     if yaml['color_piece'] == 'black'
-      return player2, player1
+      [player2, player1]
     else
-      return player1, player2
+      [player1, player2]
     end
   end
 
@@ -289,13 +285,11 @@ class Board
     source_row, source_column = @pieces.change_alphabet_to_array(source)
     row, column = @pieces.change_alphabet_to_array(destination)
 
-    if @pawn.en_passant_moves[1] == [row, column]
-      captured_row = @pawn.en_passant_moves[2][0]
-      captured_column = @pawn.en_passant_moves[2][1]
-      @array[row][column] = @array[source_row][source_column]
-      @array[source_row][source_column] = '     '
-      @array[captured_row][captured_column] = '     '
-    end
+    captured_row = @pawn.en_passant_moves[2][0]
+    captured_column = @pawn.en_passant_moves[2][1]
+    @array[row][column] = @array[source_row][source_column]
+    @array[source_row][source_column] = '     '
+    @array[captured_row][captured_column] = '     '
     @pawn.en_passant_moves = [false]
   end
 
@@ -317,22 +311,22 @@ class Board
 
   def piece_method_to_call(coord, array, color_piece)
     row, column = @pieces.change_alphabet_to_array(coord)
-    if array[row][column].split('').include?('♟') || array[row][column].split('').include?('♙')
+    if /[♟♙]/ =~ array[row][column]
       @chess_piece_array = @pawn.pawn_move(array, coord, color_piece)
       valid_squares = @pawn.green_square_array
-    elsif array[row][column].split('').include?('♜') || array[row][column].split('').include?('♖')
+    elsif /[♜♖]/ =~ array[row][column]
       @chess_piece_array = @rook.find_moves(array, coord, color_piece)
       valid_squares = @rook.green_square_array
-    elsif array[row][column].split('').include?('♞') || array[row][column].split('').include?('♘')
+    elsif /[♞♘]/ =~ array[row][column]
       @chess_piece_array = @knight.create_children(coord, array, color_piece)
       valid_squares = @knight.green_square_array
-    elsif array[row][column].split('').include?('♝') || array[row][column].split('').include?('♗')
+    elsif /[♝♗]/ =~ array[row][column]
       @chess_piece_array = @bishop.bishop_move(array, coord, color_piece)
       valid_squares = @bishop.green_square_array
-    elsif array[row][column].split('').include?('♛') || array[row][column].split('').include?('♕')
+    elsif /[♛♕]/ =~ array[row][column]
       @chess_piece_array = @queen.queen_move(array, coord, color_piece)
       valid_squares = @queen.green_square_array
-    elsif array[row][column].split('').include?('♚') || array[row][column].split('').include?('♔')
+    elsif /[♚♔]/ =~ array[row][column]
       @chess_piece_array = @king.king_move(array, coord, color_piece)
       valid_squares = @king.green_square_array
     end
@@ -369,14 +363,6 @@ class Board
 
     array[0][7] = '  ♜  '.black
     array[7][7]  = '  ♖  '
-    # array[0][4] = '  ♚  '.black
-  #  array[2][5]  = '  ♕  '
-  #  array[0][7] = '  ♜  '.black
-  #  array[7][4]  = '  ♔  '
-  # array[1][4] = '  ♙  '
-  # array[3][4]  = '  ♔  '
-  # array[1][1]  = '  ♖  '
-  # array[3][0]  = '  ♖  '
     colored_board_array = color_board(array)
     colored_board_array
   end
@@ -428,5 +414,5 @@ class Board
       end
     end
     true if valid_squares.empty?
-  end
+ end
 end

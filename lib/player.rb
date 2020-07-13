@@ -124,7 +124,6 @@ class Player
 
   def quit_or_save(user_choice)
     return true unless /^save$/i =~ user_choice && /^quit$/i =~ user_choice
-    p 'kome'
     if /^save$/i =~ user_choice
       @@board.save_game(@piece)
       return false
