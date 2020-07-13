@@ -3,6 +3,7 @@ require_relative 'player'
 require_relative 'computer'
 require_relative 'board'
 require 'colorize'
+
 puts 'Would you like to?'
 puts '1. Load a game'
 puts '2. Play new game'
@@ -14,6 +15,7 @@ until /^[12]$/ =~ mode
   puts '2. Play new game'
   mode = gets.chomp
 end
+
 if mode == '2'
   player1 = nil
   player2 = nil
@@ -38,10 +40,12 @@ if mode == '2'
       break
     end
   end
+
   loop do
     break unless player1.move
     break unless player2.move
   end
+
 else
   puts 'Choose a game mode'
   puts '1. canyoubeatme'
@@ -49,6 +53,7 @@ else
   puts '3. youarerooked'
   puts '4. yourgame'
   game_choice = gets.chomp
+
   until /^[1234]$/ =~ game_choice
     puts 'Invalid!'.red
     puts 'Choose a game mode'
@@ -58,6 +63,7 @@ else
     puts '4. yourgame'
     game_choice = gets.chomp
   end
+  
   board = Board.new
   player1, player2 = board.load_game(game_choice)
   player1 = Player.new(player1.name, player1.piece)
