@@ -183,7 +183,7 @@ class Board
     'player_attr' => @@player_attr,
     'last_player' => color_piece
   }
-    File.open('./saved_games/yourgame.yml', 'w') {|f| YAML.dump(hash, f)}
+    File.open('./saved_games/yourgame.yml', 'w') { |f| YAML.dump(hash, f) }
     exit
   end
 
@@ -211,16 +211,15 @@ class Board
   private
 
   def castling_rules(coord)
-    if coord == 'a8'
+    case coord
+    when 'a8'
       @pieces.black_queenside_rook = true
-    elsif coord == 'h8'
+    when 'h8'
       @pieces.black_kingside_rook = true
-    elsif coord == 'a1'
+    when 'a1'
       @pieces.white_queenside_rook = true
-    elsif coord == 'h1'
+    when 'h1'
       @pieces.white_kingside_rook = true
-    else
-      # do nothing
     end
   end
 
@@ -254,7 +253,6 @@ class Board
     @@check_for_check = false
     possible_moves = []
     legal_moves = []
-    moves = []
     if color_piece == 'black'
       chess_pieces = @pieces.black_pieces
     else
@@ -267,7 +265,7 @@ class Board
           valid_squares = piece_method_to_call([row, column], copied_array, color_piece)
           unless valid_squares.empty?
             possible_moves << [row, column]
-            mapped_valid_squares = valid_squares.map{ |item| item}
+            mapped_valid_squares = valid_squares.map { |item| item }
             legal_moves << mapped_valid_squares
           end
         end
@@ -297,13 +295,9 @@ class Board
     array.each_with_index do |subarray, row|
       subarray.each_with_index do |sub_sub_array, column|
         if color_piece == 'white'
-          if sub_sub_array.split('').include?('♚')
-            return [row, column]
-          end
+          return [row, column] if sub_sub_array.split('').include?('♚')
         else
-          if sub_sub_array.split('').include?('♔')
-            return [row, column]
-          end
+          return [row, column] if sub_sub_array.split('').include?('♔')
         end
       end
     end
@@ -341,28 +335,28 @@ class Board
       array[6][i] = '  ♙  '
     end
     array[0][0] = '  ♜  '.black
-    array[7][0]  = '  ♖  '
+    array[7][0] = '  ♖  '
 
     array[0][1] = '  ♞  '.black
-    array[7][1]  = '  ♘  '
+    array[7][1] = '  ♘  '
 
     array[0][2] = '  ♝  '.black
-    array[7][2]  = '  ♗  '
+    array[7][2] = '  ♗  '
 
     array[0][3] = '  ♛  '.black
-    array[7][3]  = '  ♕  '
+    array[7][3] = '  ♕  '
 
     array[0][4] = '  ♚  '.black
-    array[7][4]  = '  ♔  '
+    array[7][4] = '  ♔  '
 
     array[0][5] = '  ♝  '.black
-    array[7][5]  = '  ♗  '
+    array[7][5] = '  ♗  '
 
     array[0][6] = '  ♞  '.black
-    array[7][6]  = '  ♘  '
+    array[7][6] = '  ♘  '
 
     array[0][7] = '  ♜  '.black
-    array[7][7]  = '  ♖  '
+    array[7][7] = '  ♖  '
     colored_board_array = color_board(array)
     colored_board_array
   end

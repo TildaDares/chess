@@ -29,11 +29,10 @@ if mode == '2'
 
     if /^[12]$/ =~ game_options
       game = Game.new
+      player1 = game.player1
       if game_options == '1'
-        player1 = game.player1
         player2 = Computer.new('black')
       else
-        player1 = game.player1
         player2 = game.player2
       end
       Board.player_attr = [player1, player2]
@@ -63,7 +62,7 @@ else
     puts '4. yourgame'
     game_choice = gets.chomp
   end
-  
+
   board = Board.new
   player1, player2 = board.load_game(game_choice)
   player1 = Player.new(player1.name, player1.piece)

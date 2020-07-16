@@ -12,7 +12,7 @@ class Computer < Player
     return false if @@board.stalemate?(@piece) || @@board.checkmate_in_check?(@piece)
 
     if @@board.promotion?(square_to_move_to, @piece)
-      promotion_for_piece(square_to_move_to, ['1', '2', '3', '4'].sample(1))
+      promotion_for_piece(square_to_move_to, %w[1 2 3 4].sample(1))
     end
     puts "Your turn"
     true
