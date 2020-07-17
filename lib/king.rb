@@ -1,13 +1,21 @@
+# frozen_string_literal: true
+
 require 'colorize'
 require_relative 'pieces'
 require_relative 'board'
+
+# King class
 class King < Pieces
   attr_reader :green_square_array
-  attr_accessor :castling_moves
+  attr_accessor :castling_moves, :black_queenside_rook, :black_kingside_rook, :white_queenside_rook, :white_kingside_rook
   def initialize
     @castling_moves = [false]
     @blacks_moves = []
     @white_moves = []
+    @black_queenside_rook = false
+    @black_kingside_rook = false
+    @white_queenside_rook = false
+    @white_kingside_rook = false
     super()
   end
 
@@ -27,8 +35,8 @@ class King < Pieces
     movesets
     castling(color_piece, coord)
     unless Board.check_for_check
-     color_piece == 'white' ? @white_moves << coord : @blacks_moves << coord
-     check_for_legal_moves(@green_square_array, @array, @king, @opponent_color_piece, coord)
+      color_piece == 'white' ? @white_moves << coord : @blacks_moves << coord
+      check_for_legal_moves(@green_square_array, @array, @king, @opponent_color_piece, coord)
     end
     @array
   end
@@ -39,10 +47,10 @@ class King < Pieces
     dr = [-1, -1, -1, 0, 0, +1, +1, +1]
     dc = [-1, 0, +1, -1, +1, -1, 0, +1]
     8.times do |i|
-      if (@row + dr[i]).between?(0, 7) && (@column + dc[i]).between?(0, 7)
-        unless (@piece & @array[@row + dr[i]][@column + dc[i]].split('')).any?
-          @green_square_array << [@row + dr[i], @column + dc[i]]
-        end
+      next unless (@row + dr[i]).between?(0, 7) && (@column + dc[i]).between?(0, 7)
+
+      unless (@piece & @array[@row + dr[i]][@column + dc[i]].split('')).any?
+        @green_square_array << [@row + dr[i], @column + dc[i]]
       end
     end
   end
@@ -58,7 +66,7 @@ class King < Pieces
   def castling_black(coord)
     board = Board.new
     return unless @blacks_moves.empty? && coord == 'e8'
-    
+
     if !@black_kingside_rook && !board.check?(@opponent_color_piece, @array) && nothing_in_between_king_and_rook('up')
       if (@column + 2).between?(0, 7) && !castling_through_check(@column + 1)
         @castling_moves[0] = true

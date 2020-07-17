@@ -1,66 +1,65 @@
+# frozen_string_literal: true
+
 require 'colorize'
+
+# Pieces class
 class Pieces
   attr_reader :all_chess_pieces, :white_pieces, :black_pieces
-  attr_accessor :black_queenside_rook, :black_kingside_rook, :white_queenside_rook, :white_kingside_rook
   def initialize
     @all_chess_pieces = ['♟', '♙', '♜', '♖', '♞', '♘', '♝', '♗', '♛', '♕', '♚', '♔']
     @white_pieces = ['♔', '♕', '♖', '♗', '♘', '♙']
     @black_pieces = ['♚', '♛', '♜', '♝', '♞', '♟']
-    @black_queenside_rook = false
-    @black_kingside_rook = false
-    @white_queenside_rook = false
-    @white_kingside_rook = false
   end
 
   def change_alphabet_to_array(source)
     return source if source.is_a?(Array)
 
     splited_source = source.split('')
-    case splited_source[0]
-    when 'a'
-      column = 0
-    when 'b'
-      column = 1
-    when 'c'
-      column = 2
-    when 'd'
-      column = 3
-    when 'e'
-      column = 4
-    when 'f'
-      column = 5
-    when 'g'
-      column = 6
-    when 'h'
-      column = 7
-    else
-      column = -1
-    end
+    column = case splited_source[0]
+             when 'a'
+               0
+             when 'b'
+               1
+             when 'c'
+               2
+             when 'd'
+               3
+             when 'e'
+               4
+             when 'f'
+               5
+             when 'g'
+               6
+             when 'h'
+               7
+             else
+               -1
+             end
     row = change_number_to_array(splited_source[1])
     [row, column]
   end
 
   def change_number_to_array(source)
-    case source
-    when '1'
-      row = 7
-    when '2'
-      row = 6
-    when '3'
-      row = 5
-    when '4'
-      row = 4
-    when '5'
-      row = 3
-    when '6'
-      row = 2
-    when '7'
-      row = 1
-    when '8'
-      row = 0
-    else
-      row = -1
-    end
+    row = case source
+          when '1'
+            7
+          when '2'
+            6
+          when '3'
+            5
+          when '4'
+            4
+          when '5'
+            3
+          when '6'
+            2
+          when '7'
+            1
+          when '8'
+            0
+          else
+            -1
+          end
     row
   end
 

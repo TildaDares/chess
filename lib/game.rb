@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
 require_relative 'player'
 require_relative 'board'
+
+# Game class
 class Game
   def player1
     game_instruct

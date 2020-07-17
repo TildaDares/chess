@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 require 'colorize'
 require_relative 'pieces'
 require_relative 'board'
+
+# Bishop class
 class Bishop < Pieces
   attr_reader :green_square_array
   def initialize
@@ -28,7 +32,9 @@ class Bishop < Pieces
     upwards_anti_diagonal
     return look_ahead(@green_square_array, @array, @symbol, @opp_color_piece, coord) if Board.check_for_checkmate
 
-    check_for_legal_moves(@green_square_array, @array, @symbol, @opp_color_piece, coord) if !Board.check_for_check && queen_caller
+    if !Board.check_for_check && queen_caller
+      check_for_legal_moves(@green_square_array, @array, @symbol, @opp_color_piece, coord)
+    end
     @array
   end
 
@@ -43,8 +49,8 @@ class Bishop < Pieces
         @green_square_array << [@row + i, @column + i]
         break
       end
-        @green_square_array << [@row + i, @column + i]
-        i += 1
+      @green_square_array << [@row + i, @column + i]
+      i += 1
     end
   end
 
@@ -71,8 +77,8 @@ class Bishop < Pieces
         @green_square_array << [@row + i, @column - i]
         break
       end
-        @green_square_array << [@row + i, @column - i]
-        i += 1
+      @green_square_array << [@row + i, @column - i]
+      i += 1
     end
   end
 

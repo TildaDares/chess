@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 require 'colorize'
 require_relative 'pieces'
 require_relative 'board'
+
+# Rook class
 class Rook < Pieces
   attr_reader :green_square_array
   def initialize
@@ -26,9 +30,13 @@ class Rook < Pieces
     @row, @column = change_alphabet_to_array(coord)
     row_checker(n)
     column_checker
-    return look_ahead(@green_square_array, @array, @symbol, @opponent_color_piece, coord) if Board.check_for_checkmate && queen_caller
-    
-    check_for_legal_moves(@green_square_array, @array, @symbol, @opponent_color_piece, coord) if !Board.check_for_check && queen_caller
+    if Board.check_for_checkmate && queen_caller
+      return look_ahead(@green_square_array, @array, @symbol, @opponent_color_piece, coord)
+    end
+
+    if !Board.check_for_check && queen_caller
+      check_for_legal_moves(@green_square_array, @array, @symbol, @opponent_color_piece, coord)
+    end
     @array
   end
 

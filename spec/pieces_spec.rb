@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require './lib/pieces'
 describe Pieces do
   pieces = described_class.new

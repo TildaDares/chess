@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 require 'colorize'
 require_relative 'pieces'
 require_relative 'board'
+
+# Pawn class
 class Pawn < Pieces
   attr_reader :green_square_array
   attr_accessor :en_passant_moves, :en_passant_capture
@@ -56,18 +60,18 @@ class Pawn < Pieces
   end
 
   def capture_diagonally
-    @color_piece == 'white' ? dr = [-1, -1] : dr = [+1, +1]
+    dr = @color_piece == 'white' ? [-1, -1] : [+1, +1]
     dc = [-1, +1]
 
     2.times do |i|
-      if (@row + dr[i]).between?(0, 7) && (@column + dc[i]).between?(0, 7)
-        if (@opponent_pieces & @array[@row + dr[i]][@column + dc[i]].split('')).any?
-          @green_square_array << [@row + dr[i], @column + dc[i]]
-        end
+      next unless (@row + dr[i]).between?(0, 7) && (@column + dc[i]).between?(0, 7)
+
+      if (@opponent_pieces & @array[@row + dr[i]][@column + dc[i]].split('')).any?
+        @green_square_array << [@row + dr[i], @column + dc[i]]
       end
     end
   end
-  
+
   def en_passant
     return if @blacks_moves.empty? || @white_moves.empty?
 
@@ -81,17 +85,17 @@ class Pawn < Pieces
     row, column = change_alphabet_to_array(@white_moves[-1])
 
     2.times do |i|
-      if @color_piece == 'black' && row == 6 && @row == 4
-        if (@column + dc[i]).between?(0, 7) && (@row + dr[i]).between?(0, 7)
-          if column - @column == 1 || column - @column == -1
-            if @array[@row][@column + dc[i]].split('').include?('♙')
-              @en_passant_moves[0] = true
-              @en_passant_moves << [@row + dr[i], @column + dc[i]] << [@row, @column + dc[i]]
-              @green_square_array << [@row + dr[i], @column + dc[i]]
-            end
-          end
-        end
-      end
+      next unless @color_piece == 'black' && row == 6 && @row == 4
+
+      next unless (@column + dc[i]).between?(0, 7) && (@row + dr[i]).between?(0, 7)
+
+      next unless column - @column == 1 || column - @column == -1
+
+      next unless @array[@row][@column + dc[i]].split('').include?('♙')
+
+      @en_passant_moves[0] = true
+      @en_passant_moves << [@row + dr[i], @column + dc[i]] << [@row, @column + dc[i]]
+      @green_square_array << [@row + dr[i], @column + dc[i]]
     end
   end
 
@@ -101,17 +105,17 @@ class Pawn < Pieces
     row, column = change_alphabet_to_array(@blacks_moves[-1])
 
     2.times do |i|
-      if @color_piece == 'white' && row == 1 && @row == 3
-        if (@column + dc[i]).between?(0, 7) && (@row + dr[i]).between?(0, 7)
-          if column - @column == 1 || column - @column == -1
-            if @array[@row][@column + dc[i]].split('').include?('♟')
-              @en_passant_moves[0] = true
-              @en_passant_moves << [@row + dr[i], @column + dc[i]] << [@row, @column + dc[i]]
-              @green_square_array << [@row + dr[i], @column + dc[i]]
-            end
-          end
-        end
-      end
+      next unless @color_piece == 'white' && row == 1 && @row == 3
+
+      next unless (@column + dc[i]).between?(0, 7) && (@row + dr[i]).between?(0, 7)
+
+      next unless column - @column == 1 || column - @column == -1
+
+      next unless @array[@row][@column + dc[i]].split('').include?('♟')
+
+      @en_passant_moves[0] = true
+      @en_passant_moves << [@row + dr[i], @column + dc[i]] << [@row, @column + dc[i]]
+      @green_square_array << [@row + dr[i], @column + dc[i]]
     end
   end
 end

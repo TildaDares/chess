@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 require_relative 'rook'
 require_relative 'bishop'
 require_relative 'pieces'
 require_relative 'board'
+
+# Queen class
 class Queen < Pieces
   attr_reader :green_square_array
   def initialize

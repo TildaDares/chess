@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require './lib/board'
 describe Board do
   board = described_class.new
@@ -13,8 +15,8 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          expect(board).to be_check('white', board_array)
+        ]
+        expect(board).to be_check('white', board_array)
       end
     end
 
@@ -29,8 +31,8 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          expect(board).to_not be_check('white', board_array)
+        ]
+        expect(board).to_not be_check('white', board_array)
       end
     end
 
@@ -45,8 +47,8 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '', '', '', ''],
           ['', '', '♜'.black, '', '♔', '', '', '']
-          ]
-          expect(board).to be_check('black', board_array)
+        ]
+        expect(board).to be_check('black', board_array)
       end
     end
 
@@ -61,8 +63,8 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '', '', '', ''],
           ['', '', '♕', '', '♔', '', '', '']
-          ]
-          expect(board).to_not be_check('black', board_array)
+        ]
+        expect(board).to_not be_check('black', board_array)
       end
     end
   end
@@ -79,9 +81,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to be_checkmate_in_check('white')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to be_checkmate_in_check('white')
       end
     end
 
@@ -96,9 +98,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '', '', '', ''],
           ['', '', '♕', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to_not be_checkmate_in_check('white')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to_not be_checkmate_in_check('white')
       end
     end
 
@@ -113,9 +115,9 @@ describe Board do
           ['', '', '', '', '♚'.black, '', '', ''],
           ['', '', '', '', '♟'.black, '', '', ''],
           ['', '', '♛'.black, '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to be_checkmate_in_check('black')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to be_checkmate_in_check('black')
       end
     end
 
@@ -130,9 +132,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '', '', '', ''],
           ['', '', '♕', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to_not be_checkmate_in_check('black')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to_not be_checkmate_in_check('black')
       end
     end
   end
@@ -149,9 +151,9 @@ describe Board do
           ['', '', '', '', '♚'.black, '', '', ''],
           ['', '', '', '♜'.black, '♟'.black, '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to be_stalemate('black')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to be_stalemate('black')
       end
     end
 
@@ -166,9 +168,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♙'.black, '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to_not be_stalemate('black')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to_not be_stalemate('black')
       end
     end
 
@@ -183,9 +185,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♙', '', '', ''],
           ['', '', '', '', '', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to be_stalemate('white')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to be_stalemate('white')
       end
     end
 
@@ -200,9 +202,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♙', '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to_not be_stalemate('white')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to_not be_stalemate('white')
       end
     end
   end
@@ -219,9 +221,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♙', '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to be_promotion('a8', 'white')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to be_promotion('a8', 'white')
       end
     end
 
@@ -236,9 +238,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♙', '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to_not be_promotion('b6', 'white')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to_not be_promotion('b6', 'white')
       end
     end
 
@@ -253,9 +255,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♙', '', '', ''],
           ['', '', '', '', '♔', '', '♟', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to be_promotion('g1', 'black')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to be_promotion('g1', 'black')
       end
     end
 
@@ -270,13 +272,13 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♙', '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to_not be_promotion('f4', 'white')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to_not be_promotion('f4', 'white')
       end
     end
 
-    context "when the piece is not a pawn" do
+    context 'when the piece is not a pawn' do
       it 'returns false' do
         board_array = [
           ['', '', '', '', '', '♚', '', ''],
@@ -287,9 +289,9 @@ describe Board do
           ['', '', '', '', '', '', '', ''],
           ['', '', '', '', '♙', '', '', ''],
           ['', '', '', '', '♔', '', '', '']
-          ]
-          board.instance_variable_set(:@array, board_array)
-          expect(board).to_not be_promotion('b4', 'white')
+        ]
+        board.instance_variable_set(:@array, board_array)
+        expect(board).to_not be_promotion('b4', 'white')
       end
     end
   end

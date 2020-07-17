@@ -1,9 +1,16 @@
+# frozen_string_literal: true
+
+# Player class
 class Player
   attr_reader :name, :piece
   def initialize(name, piece)
     @name = name
     @piece = piece
     @@board = Board.new
+  end
+
+  def self.set_board=(value)
+    @@board = value
   end
 
   def move
@@ -49,9 +56,9 @@ class Player
     2. Queen
     3. Rook
     4. Bishop
-            HEREDOC
+    HEREDOC
     promote_to = gets.chomp
-    
+
     until /^[1234]$/ =~ promote_to
       puts 'You have to pick 1, 2, 3 or 4'
       puts 'What would you like your pawn to be?'
@@ -60,7 +67,7 @@ class Player
         2. Queen
         3. Rook
         4. Bishop
-              HEREDOC
+      HEREDOC
       promote_to = gets.chomp
     end
     promotion_for_piece(square_to_move_to, promote_to)
@@ -71,7 +78,7 @@ class Player
     when '1'
       '  ♞  '
     when '2'
-     '  ♛  '
+      '  ♛  '
     when '3'
       '  ♜  '
     when '4'
@@ -106,6 +113,7 @@ class Player
       return false
     end
     return false if /^quit$/i =~ user_choice
+
     true
   end
 

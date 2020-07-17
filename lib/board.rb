@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'colorize'
 require_relative 'knight'
 require_relative 'rook'
@@ -9,7 +11,10 @@ require_relative 'pieces'
 require_relative 'computer'
 require_relative 'player'
 require 'yaml'
+
+# Board class
 class Board
+  attr_writer :array
   def initialize
     @array = populate_board
     @pieces = Pieces.new
@@ -52,9 +57,7 @@ class Board
       if @pawn.en_passant_moves[0] && @pawn.en_passant_moves[1] == [row, column]
         en_passant_true(piece_to_play, coord)
       elsif @king.castling_moves[0] && (coord == @king.castling_moves[1] || coord == @king.castling_moves[4])
-        if piece_to_play == 'e1' || piece_to_play == 'e8'
-          castling(piece_to_play, coord)
-        end
+        castling(piece_to_play, coord) if piece_to_play == 'e1' || piece_to_play == 'e8'
       else
         @array[row][column] = @array[source_row][source_column]
         @array[source_row][source_column] = '     '
@@ -64,7 +67,7 @@ class Board
       @array[row][column] = @array[row][column].on_light_yellow
       @array[source_row][source_column] = '     '.on_light_yellow
       if check?('black') || check?('white')
-        puts "Check!".red
+        puts 'Check!'.red
         @array = @global_board_array
       end
       return true
@@ -75,11 +78,11 @@ class Board
 
   def check?(color_piece, array = @array)
     copied_array = Marshal.load Marshal.dump(array)
-    if color_piece == 'black'
-      chess_piece = @pieces.black_pieces
-    else
-      chess_piece = @pieces.white_pieces
-    end
+    chess_piece = if color_piece == 'black'
+                    @pieces.black_pieces
+                  else
+                    @pieces.white_pieces
+                  end
     @@check_for_check = true
     @@check_for_checkmate = false
     king_coord = look_for_king(color_piece, array)
@@ -87,16 +90,16 @@ class Board
       subarray.each_with_index do |sub_sub_array, column|
         next if (@pieces.all_chess_pieces & sub_sub_array.split('')).none?
 
-        if (chess_piece & array[row][column].split('')).any?
-          valid_squares = piece_method_to_call([row, column], copied_array, color_piece)
-          valid_squares.each do |item|
-            if item == king_coord
-              @global_board_array = array
-              @global_board_array[king_coord[0]][king_coord[1]] = array[king_coord[0]][king_coord[1]].on_red
-              @@check_for_check = false
-              return true 
-            end
-          end
+        next unless (chess_piece & array[row][column].split('')).any?
+
+        valid_squares = piece_method_to_call([row, column], copied_array, color_piece)
+        valid_squares.each do |item|
+          next unless item == king_coord
+
+          @global_board_array = array
+          @global_board_array[king_coord[0]][king_coord[1]] = array[king_coord[0]][king_coord[1]].on_red
+          @@check_for_check = false
+          return true
         end
       end
     end
@@ -151,11 +154,11 @@ class Board
     row, column = @pieces.change_alphabet_to_array(coord)
     @@check_for_checkmate = false
     @@check_for_check = false
-    if color_piece == 'black'
-      chess_pieces = @pieces.black_pieces
-    else
-      chess_pieces = @pieces.white_pieces
-    end
+    chess_pieces = if color_piece == 'black'
+                     @pieces.black_pieces
+                   else
+                     @pieces.white_pieces
+                   end
     if (chess_pieces & @array[row][column].split('')).any?
       is_there_a_move = piece_method_to_call(coord, copied_array, color_piece)
       print_board(@chess_piece_array)
@@ -163,7 +166,7 @@ class Board
         puts 'There are no moves to make from this square'
         return false
       else
-        return true 
+        return true
       end
     end
     puts "You're playing from the wrong side of the board"
@@ -178,33 +181,32 @@ class Board
   end
 
   def save_game(color_piece)
-  hash = {
-    'board' => @array,
-    'player_attr' => @@player_attr,
-    'last_player' => color_piece
-  }
+    hash = {
+      'player_attr' => @@player_attr,
+      'last_player' => color_piece,
+      'self' => self
+    }
     File.open('./saved_games/yourgame.yml', 'w') { |f| YAML.dump(hash, f) }
     exit
   end
 
   def load_game(game_choice)
-    case game_choice
-    when '1'
-      yaml = YAML.load_file('./saved_games/canyoubeatme.yml')
-    when '2'
-      yaml = YAML.load_file('./saved_games/check.yml')
-    when '3'
-      yaml = YAML.load_file('./saved_games/youarerooked.yml')
-    else
-      yaml = YAML.load_file('./saved_games/yourgame.yml')
-    end
-    @array = yaml['board']
+    yaml = case game_choice
+           when '1'
+             YAML.load_file('./saved_games/canyoubeatme.yml')
+           when '2'
+             YAML.load_file('./saved_games/check.yml')
+           when '3'
+             YAML.load_file('./saved_games/youarerooked.yml')
+           else
+             YAML.load_file('./saved_games/yourgame.yml')
+           end
     player1 = yaml['player_attr'][0]
     player2 = yaml['player_attr'][1]
-    if yaml['color_piece'] == 'black'
-      [player2, player1]
+    if yaml['last_player'] == 'black'
+      [player2, player1, yaml['self']]
     else
-      [player1, player2]
+      [player1, player2, yaml['self']]
     end
   end
 
@@ -213,13 +215,13 @@ class Board
   def castling_rules(coord)
     case coord
     when 'a8'
-      @pieces.black_queenside_rook = true
+      @king.black_queenside_rook = true
     when 'h8'
-      @pieces.black_kingside_rook = true
+      @king.black_kingside_rook = true
     when 'a1'
-      @pieces.white_queenside_rook = true
+      @king.white_queenside_rook = true
     when 'h1'
-      @pieces.white_kingside_rook = true
+      @king.white_kingside_rook = true
     end
   end
 
@@ -236,7 +238,7 @@ class Board
         rook_loc = @king.castling_moves[6]
       end
     end
-    
+
     rook_loc_row, rook_loc_column = @pieces.change_alphabet_to_array(rook_loc)
     king_loc_row, king_loc_column = @pieces.change_alphabet_to_array(piece_to_play)
     king_row, king_column = @pieces.change_alphabet_to_array(king_dest)
@@ -253,22 +255,22 @@ class Board
     @@check_for_check = false
     possible_moves = []
     legal_moves = []
-    if color_piece == 'black'
-      chess_pieces = @pieces.black_pieces
-    else
-      chess_pieces = @pieces.white_pieces
-    end
+    chess_pieces = if color_piece == 'black'
+                     @pieces.black_pieces
+                   else
+                     @pieces.white_pieces
+                   end
     copied_array = Marshal.load Marshal.dump(@array)
     @array.each_with_index do |subarray, row|
       subarray.each_with_index do |sub_sub_array, column|
-        if (chess_pieces & sub_sub_array.split('')).any?
-          valid_squares = piece_method_to_call([row, column], copied_array, color_piece)
-          unless valid_squares.empty?
-            possible_moves << [row, column]
-            mapped_valid_squares = valid_squares.map { |item| item }
-            legal_moves << mapped_valid_squares
-          end
-        end
+        next unless (chess_pieces & sub_sub_array.split('')).any?
+
+        valid_squares = piece_method_to_call([row, column], copied_array, color_piece)
+        next if valid_squares.empty?
+
+        possible_moves << [row, column]
+        mapped_valid_squares = valid_squares.map { |item| item }
+        legal_moves << mapped_valid_squares
       end
     end
     random_move = possible_moves.sample(1)
@@ -361,29 +363,29 @@ class Board
     colored_board_array
   end
 
- def color_board(array)
-   copied_array = array
-   copied_array.each_with_index do |subarray, idx|
-     subarray.each_with_index do |sub_sub_array, jdx|
-       if idx.even?
-         if jdx.even?
-           array[idx][jdx] = sub_sub_array.on_light_black
-         else
-           array[idx][jdx] = sub_sub_array.on_light_white
-         end
-       else
-         if jdx.odd?
-           array[idx][jdx] = sub_sub_array.on_light_black
-         else
-           array[idx][jdx] = sub_sub_array.on_light_white
-         end
-       end
-     end
-   end
-   array
- end
+  def color_board(array)
+    copied_array = array
+    copied_array.each_with_index do |subarray, idx|
+      subarray.each_with_index do |sub_sub_array, jdx|
+        array[idx][jdx] = if idx.even?
+                            if jdx.even?
+                              sub_sub_array.on_light_black
+                            else
+                              sub_sub_array.on_light_white
+                            end
+                          else
+                            if jdx.odd?
+                              sub_sub_array.on_light_black
+                            else
+                              sub_sub_array.on_light_white
+                            end
+                          end
+      end
+    end
+    array
+  end
 
- def checkmate?(color_piece)
+  def checkmate?(color_piece)
     copied_array = Marshal.load Marshal.dump(@array)
     row, column = look_for_king(color_piece, copied_array)
     king = King.new
@@ -399,14 +401,13 @@ class Board
     @@check_for_checkmate = true
     @array.each_with_index do |subarray, row|
       subarray.each_with_index do |sub_sub_array, column|
-        if (chess_piece & @array[row][column].split('')).any?
-          next if /[♚♔]/ =~ sub_sub_array # skips checking kings because I've already checked
+        next unless (chess_piece & @array[row][column].split('')).any?
+        next if /[♚♔]/ =~ sub_sub_array # skips checking kings because I've already checked
 
-          piece_method_to_call([row, column], copied_array, pass_color_piece) # calls look_ahead method in Pieces class
-          return false if @chess_piece_array.is_a?(Array) || @chess_piece_array
-        end
+        piece_method_to_call([row, column], copied_array, pass_color_piece) # calls look_ahead method in Pieces class
+        return false if @chess_piece_array.is_a?(Array) || @chess_piece_array
       end
     end
     true if valid_squares.empty?
- end
+  end
 end
