@@ -14,7 +14,6 @@ require 'yaml'
 
 # Board class
 class Board
-  attr_writer :array
   def initialize
     @array = populate_board
     @pieces = Pieces.new
